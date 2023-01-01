@@ -1,0 +1,1 @@
+web: gunicorn --pythonpath gps_server:app
