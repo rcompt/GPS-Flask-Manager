@@ -7,7 +7,7 @@ Created on Sat Dec 31 17:25:01 2022
 
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
-from app import app
+from gps_server import app
 from models import db
 
 migrate = Migrate(app, db)

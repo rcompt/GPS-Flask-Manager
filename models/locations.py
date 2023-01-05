@@ -5,54 +5,61 @@ Created on Sat Dec 31 17:25:52 2022
 @author: Stang
 """
 
-import os
-from sqlalchemy import Column, String, Integer, create_engine, Float
-from flask_sqlalchemy import SQLAlchemy
+from db import db
 
-db = SQLAlchemy()
-
-'''
-setup_db(app):
-    binds a flask application and a SQLAlchemy service
-'''
-def setup_db(app):
-    database_name ='local_db_name'
-    default_database_path= "postgres://{}:{}@{}/{}".format('postgres', 'password', 'localhost:5432', database_name)
-    database_path = os.getenv('DATABASE_URL', default_database_path)
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_path
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    db.app = app
-    db.init_app(app)
-    
-'''
-    drops the database tables and starts fresh
-    can be used to initialize a clean database
-'''
-def db_drop_and_create_all():
-    db.drop_all()
-    db.create_all()
     
 class LocationModel(db.Model):
     
-    __tablename__ = 'locations'
-    id_ = Column(Integer, primary_key=True)
-    lat_adj = Column(Float)
-    long_adj = Column(Float)
-    timestamp = Column(db.DateTime)
+    __tablename__ = 'locations_1'
+    id_ = db.Column(db.Integer, primary_key=True)
+    lat_adj = db.Column(db.Float)
+    long_adj = db.Column(db.Float)
+    timestamp = db.Column(db.String)
+    year = db.Column(db.Integer)
+    month = db.Column(db.Integer)
+    day = db.Column(db.Integer)
+    day_of_year = db.Column(db.Integer)
+    hour = db.Column(db.Integer)
     
-    def __init__(self, id_, timestamp, lat, long):
+    def __init__(
+            self, 
+            id_, 
+            timestamp, 
+            lat_adj, 
+            long_adj,
+            year,
+            month,
+            day,
+            day_of_year,
+            hour
+            ):
         self.id_ = id_
         self.timestamp = timestamp
-        self.lat_adj = lat
-        self.long_adj = long
+        self.lat_adj = lat_adj
+        self.long_adj = long_adj
+        self.year = year
+        self.month = month
+        self.day = day
+        self.day_of_year = day_of_year
+        self.hour = hour
+
         
     def json(self):
         return {
             'id': self.id_,
             'timestamp': self.timestamp,
             'lat_adj': self.lat_adj,
-            'long_adj': self.long_adj
+            'long_adj': self.long_adj,
+            'year': self.year,
+            'month': self.month,
+            'day': self.day,
+            'day_of_year': self.day_of_year,
+            'hour': self.hour
         }
+    
+    @classmethod
+    def find_location_by_id(self,id_):
+        return self.query.filter_by(id_=id_).first() 
     
     def insert(self):
         db.session.add(self)

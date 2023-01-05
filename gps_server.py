@@ -10,35 +10,37 @@ import json
 
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS, cross_origin
+from flask_restful import Api
 import logging
 
-from models import setup_db, Location, db_drop_and_create_all
+from resources.locations import Location, LocationList
 
-log = logging.getLogger("gps_server_log.txt")    
-                  
+
+from db import db
+
 app = Flask(__name__)
-CORS(app, supports_credentials = True)
-app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
-app.config['CORS_HEADERS'] = 'Content-Type'
+api = Api(app)
 
-@app.route("/")
-@cross_origin()
-def home():
-    return render_template("home.html",prediction="2.56")
+uri = os.getenv("DATABASE_URL") 
+if uri: # or other relevant config var
+    if uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://", 1)
 
-@app.route("/predict",methods=["POST"])
-@cross_origin()
-def predict():
-    if request.data:
+else:
+    uri = 'sqlite:///data.db'
 
-        text = request.json.get('TEXT')
+app.config['SQLALCHEMY_DATABASE_URI'] = uri
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-        predictionData = {'prediction': list(prediction)}
-        
-        response = jsonify(predictionData)
-        return response
-   
+@app.before_first_request
+def create_tables():
+    db.create_all()
 
-if __name__ == "__main__":
-    app.run(debug=True)
-    log.info("App is running")
+api.add_resource(Location,'/location/<string:id_>')
+api.add_resource(LocationList, '/locations')
+
+db.init_app(app)
+
+
+if __name__ == '__main__':
+   app.run(debug=True)
