@@ -15,7 +15,6 @@ import logging
 
 from resources.locations import Location, LocationList
 
-
 from db import db
 
 app = Flask(__name__)
