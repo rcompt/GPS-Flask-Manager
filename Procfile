@@ -1,1 +1,1 @@
-web: gunicorn --pythonpath gps_server:app
+web: gunicorn --pythonpath server gps_server:app
