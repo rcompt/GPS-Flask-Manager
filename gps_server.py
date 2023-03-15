@@ -13,7 +13,7 @@ from flask_cors import CORS, cross_origin
 from flask_restful import Api
 import logging
 
-from resources.locations import Location, LocationList
+from models.locations import Location
 
 from db import db
 
@@ -33,63 +33,51 @@ api = Api(app)
 # else:
 #     uri = 'sqlite:///data.db'
 
-#app.config['SQLALCHEMY_DATABASE_URI'] = database_file
-#app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:<password>@localhost/locations"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-#db.init_app(app)
+db.init_app(app)
 
 
-# @app.before_first_request
-# def create_tables():
-#     db.create_all()
+@app.before_first_request
+def create_tables():
+     db.create_all()
 
 #api.add_resource(Location,'/location/<string:id_>')
 #api.add_resource(LocationList, '/locations')
 
-@app.route('/', methods=["GET", "POST"])
+@app.route('/')
 def home():
-    locations = None
-    if request.form:
-        try:
-            location = Location(id_=request.form.get("title"))
-            db.session.add(location)
-            db.session.commit()
-        except Exception as e:
-            print("Failed to add book")
-            print(e)
-    locations = Location.query.all()
-    return render_template("home.html", locations=locations)
-    #return render_template("home.html")
+    return '<a href="/addlocation"><button> Click here </button></a>'
 
-@app.route("/update", methods=["POST"])
-def update():
-    try:
-        newtitle = request.form.get("newtitle")
-        oldtitle = request.form.get("oldtitle")
-        location = Location.query.filter_by(id_=oldtitle).first()
-        location.id_ = newtitle
-        db.session.commit()
-    except Exception as e:
-        print("Couldn't update location id_")
-        print(e)
-    return redirect("/")
 
-@app.route("/delete", methods=["POST"])
-def delete():
-    id_ = request.form.get("title")
-    location = Location.query.filter_by(id_=id_).first()
-    db.session.delete(location)
+@app.route("/addlocation")
+def addlocation():
+    return render_template("home.html")
+
+
+@app.route("/locationadd", methods=['POST'])
+def personadd():
+    
+    entry = Location(
+        request.form["id"],
+        request.form["timestamp"],
+        request.form["lat_adj"],
+        request.form["long_adj"],
+        request.form["year"],
+        request.form["month"],
+        request.form["day"],
+        request.form["day_of_year"],
+        request.form["hour"]
+    )
+    db.session.add(entry)
     db.session.commit()
-    return redirect("/")
 
-
-@app.errorhandler(Exception)
-def handle_exception(err):
-    path = request.path # this var was shown to be 'favicon.ico' or 'manifest.json'
-    print(path)
+    return render_template("home.html")
 
 
 
 
 if __name__ == '__main__':
-   app.run(debug=True)
+    #db.create_all()
+    app.run(debug=True)

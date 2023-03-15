@@ -8,7 +8,7 @@ Created on Sat Dec 31 17:25:52 2022
 from db import db
 
     
-class LocationModel(db.Model):
+class Location(db.Model):
     
     __tablename__ = 'locations_1'
     id_ = db.Column(db.Integer, primary_key=True)
