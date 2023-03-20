@@ -74,6 +74,19 @@
               <button >Submit</button>
           </div>
       </form>
+      
+
+      
+          <h1>Locations</h1>
+              <p> ID | Latitude | Longitude | Timestamp</p>
+            {% for location in locations %}
+              <p>{{location.id_}} | {{location.lat_adj}} | {{location.long_adj}} | {{location.timestamp}}</p>
+                    <form method="POST" action="./delete">
+                        <input type="hidden" value="{{location.id_}}" name="id">
+                        <input type="submit" value="Delete">
+                      </form>
+            {% endfor %}
+      
   </body>
 
 </html>

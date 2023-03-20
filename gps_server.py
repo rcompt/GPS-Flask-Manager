@@ -12,6 +12,7 @@ from flask import Flask, render_template, request, jsonify, redirect
 from flask_cors import CORS, cross_origin
 from flask_restful import Api
 import logging
+import pickle
 
 from models.locations import Location
 
@@ -21,6 +22,9 @@ app = Flask(__name__)
 
 
 api = Api(app)
+
+with open("config.pickle", "rb") as fp:
+    PASSWORD = pickle.load(fp)["PASSWORD"]
 
 #project_dir = os.path.dirname(os.path.abspath(__file__))
 #database_file = "postgres:///{}".format(os.path.join(project_dir, "locations.db"))
@@ -33,7 +37,7 @@ api = Api(app)
 # else:
 #     uri = 'sqlite:///data.db'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:<password>@localhost/locations"
+app.config['SQLALCHEMY_DATABASE_URI'] = F"postgresql://postgres:{PASSWORD}@localhost/locations"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -53,7 +57,8 @@ def home():
 
 @app.route("/addlocation")
 def addlocation():
-    return render_template("home.html")
+    locations = Location.query.all()
+    return render_template("home.html", locations=locations)
 
 
 @app.route("/locationadd", methods=['POST'])
@@ -73,9 +78,24 @@ def personadd():
     db.session.add(entry)
     db.session.commit()
 
-    return render_template("home.html")
+    return redirect("/addlocation")
 
+@app.route("/update", methods=["POST"])
+def update():
+    new_id = request.form.get("new_id")
+    old_id = request.form.get("old_id")
+    location = Location.query.filter_by(id_=old_id).first()
+    location.id_ = new_id
+    db.session.commit()
+    return redirect("/addlocation")
 
+@app.route("/delete", methods=["POST"])
+def delete():
+    id_ = request.form.get("id")
+    location = Location.query.filter_by(id_=id_).first()
+    db.session.delete(location)
+    db.session.commit()
+    return redirect("/addlocation")
 
 
 if __name__ == '__main__':
